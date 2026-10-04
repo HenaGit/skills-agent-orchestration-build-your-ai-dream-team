@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f6f8">
+    <title>Project Pulse</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preload" href="project-data.json" as="fetch" crossorigin>
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="header-inner">
+        <a class="brand" href="./" aria-label="Project Pulse home">
+          <span class="brand-mark" aria-hidden="true">P</span>
+          <span>Team workspace</span>
+        </a>
+        <p class="header-note">A clear view of the work in motion</p>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <div class="dashboard-heading">
+        <div>
+          <p class="eyebrow">PROJECT OVERVIEW</p>
+          <h1>Project Pulse</h1>
+          <p class="intro">A snapshot of what the team is building, who’s moving it forward, and where attention is needed.</p>
+        </div>
+        <div class="heading-mark" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <section class="projects-section" aria-labelledby="projects-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="projects-heading">Team projects</h2>
+            <p>Ownership, progress, and the latest updates</p>
+          </div>
+          <span class="section-tag">CURRENT SNAPSHOT</span>
+        </div>
+        <div id="project-content" class="project-grid" aria-live="polite" aria-busy="true">
+          <p class="state-message" role="status">Loading project updates…</p>
+        </div>
+      </section>
+      <footer class="page-footer">Project updates at a glance <span aria-hidden="true">·</span> Team workspace</footer>
+    </main>
+
+    <script>
+      const projectContent = document.querySelector("#project-content");
+      const dataUrl = new URL("project-data.json", document.baseURI);
+      const requiredFields = ["name", "owner", "summary", "status", "recentActivity", "priority"];
+
+      function setState(message, className, includeRetry = false) {
+        const state = document.createElement("div");
+        state.className = `state-message ${className}`;
+        const text = document.createElement("p");
+        text.textContent = message;
+        state.append(text);
+
+        if (includeRetry) {
+          const retry = document.createElement("button");
+          retry.className = "retry-button";
+          retry.type = "button";
+          retry.textContent = "Try again";
+          retry.addEventListener("click", loadProjects);
+          state.append(retry);
+        }
+
+        projectContent.replaceChildren(state);
+        projectContent.setAttribute("aria-busy", "false");
+      }
+
+      function validateProjects(data) {
+        if (!data || typeof data !== "object" || !Array.isArray(data.projects)) {
+          throw new Error("The project data must contain a projects array.");
+        }
+        data.projects.forEach((project, index) => {
+          if (!project || typeof project !== "object" ||
+              requiredFields.some((field) => typeof project[field] !== "string" || !project[field].trim())) {
+            throw new Error(`Project ${index + 1} is missing a required text field.`);
+          }
+        });
+        return data.projects;
+      }
+
+      function addDetail(card, label, value, className) {
+        const detail = document.createElement("div");
+        detail.className = `project-detail ${className}`;
+        const detailLabel = document.createElement("dt");
+        detailLabel.textContent = label;
+        const detailValue = document.createElement("dd");
+        detailValue.textContent = value;
+        detail.append(detailLabel, detailValue);
+        card.append(detail);
+      }
+
+      function createProjectCard(project) {
+        const card = document.createElement("article");
+        card.className = "project-card";
+
+        const topLine = document.createElement("div");
+        topLine.className = "card-topline";
+        const status = document.createElement("span");
+        status.className = "status-badge";
+        status.textContent = project.status;
+        topLine.append(status);
+        card.append(topLine);
+
+        const title = document.createElement("h3");
+        title.className = "project-name";
+        title.textContent = project.name;
+        card.append(title);
+
+        const owner = document.createElement("p");
+        owner.className = "project-owner";
+        owner.textContent = `Owned by ${project.owner}`;
+        card.append(owner);
+
+        const summary = document.createElement("p");
+        summary.className = "project-summary";
+        summary.textContent = project.summary;
+        card.append(summary);
+
+        const details = document.createElement("dl");
+        details.className = "project-details";
+        addDetail(details, "Recent activity", project.recentActivity, "activity-detail");
+        addDetail(details, "Priority", project.priority, "priority-detail");
+        card.append(details);
+        return card;
+      }
+
+      async function loadProjects() {
+        projectContent.setAttribute("aria-busy", "true");
+        const loading = document.createElement("p");
+        loading.className = "state-message";
+        loading.setAttribute("role", "status");
+        loading.textContent = "Loading project updates…";
+        projectContent.replaceChildren(loading);
+
+        try {
+          const response = await fetch(dataUrl, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`Project data request failed (${response.status}).`);
+          }
+          const projects = validateProjects(await response.json());
+          if (projects.length === 0) {
+            setState("No projects to show yet. Check back when the team has an update.", "empty-state");
+            return;
+          }
+          projectContent.replaceChildren(...projects.map(createProjectCard));
+          projectContent.setAttribute("aria-busy", "false");
+        } catch (error) {
+          const detail = error instanceof Error ? error.message : "An unexpected error occurred.";
+          setState(`We couldn’t load project updates. ${detail}`, "error-state", true);
+        }
+      }
+
+      loadProjects();
+    </script>
+  </body>
+</html>

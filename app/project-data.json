@@ -1,0 +1,36 @@
+{
+  "projects": [
+    {
+      "name": "Contributor Onboarding",
+      "owner": "Mona",
+      "summary": "Make it easier for new contributors to find their first task and understand how the team works.",
+      "status": "In progress",
+      "recentActivity": "Drafted the welcome flow and gathered feedback from three new contributors.",
+      "priority": "High"
+    },
+    {
+      "name": "Design System Refresh",
+      "owner": "Ari Chen",
+      "summary": "Bring shared interface patterns together so product teams can build consistent, accessible experiences.",
+      "status": "On track",
+      "recentActivity": "Published the updated button and form patterns for review.",
+      "priority": "Medium"
+    },
+    {
+      "name": "Community Events",
+      "owner": "Sam Rivera",
+      "summary": "Create welcoming moments for the community to learn from each other and share what they are building.",
+      "status": "Planning",
+      "recentActivity": "Shortlisted dates and topics for the next community meetup.",
+      "priority": "Medium"
+    },
+    {
+      "name": "Docs Search",
+      "owner": "Priya Shah",
+      "summary": "Help people get to the right documentation faster with clearer search results and useful suggestions.",
+      "status": "Needs attention",
+      "recentActivity": "Search relevance review surfaced gaps in the API reference index.",
+      "priority": "High"
+    }
+  ]
+}
